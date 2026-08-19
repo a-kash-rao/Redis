@@ -8,19 +8,29 @@
 #include<sys/socket.h>
 #include<netinet/ip.h>
 
+// helper function to for printing an error/info
 static void msg(const char* msg){
     fprintf(stderr, "%s\n", msg);
+    // fprintf(stderr, ...) is used to print error/debug msgs
 }
 
+// print an error and immediately terminate the program
 static void die(const char* msg){
     int err = errno;
     fprintf(stderr, "[%d] %s\n", err, msg);
     abort();
 }
 
+// communicate with one connected client
 static void do_something(int connfd){
-    char rbuf[64] = {};
+    char rbuf[64] = {};     // char array of 64 bytes
     ssize_t n = read(connfd, rbuf, sizeof(rbuf)-1);
+    // server receives data from the client
+    // read data from connfd and put it in rbuf, read atmost 63 bytes
+    // 63 because leave 1 byte for \0
+    // n -> number of bytes acutally read
+    // if clinet sends hello -> n=5
+    // ssize_t -> signed size, if n<0 -> error
     if(n<0){
         msg("read() error");
         return;
@@ -28,6 +38,8 @@ static void do_something(int connfd){
     fprintf(stderr, "client says: %s\n", rbuf);
 
     char wbuf[] = "world";
+    // it is world+\0, \0 gets appended automatically in strings in c
+    // but as strlen(wbuf)=5, it doesn't send \0
     write(connfd, wbuf, strlen(wbuf));
 }
 
@@ -78,6 +90,7 @@ int main(){
     // listen turns the socket into a listening socket
     // previous steps were just passing the parametere
     // now the socket is being created
+    // and is acting as server
     rv = listen(fd, SOMAXCONN);
     if(rv){ die("listen()"); }
     // SOMAXCONN, size of queue(4096 on linux)
@@ -87,10 +100,15 @@ int main(){
 
 
     while(true){
-        //accept
+        //accept -> get the acutal connection
         struct sockaddr_in client_addr = {};
         socklen_t addrlen = sizeof(client_addr);
         int connfd = accept(fd, (struct sockaddr *)&client_addr, &addrlen);
+        // connfd -> another file descriptor, it is the client conection, another socket
+        // the value of connfd is different for different clients
+        // the listening socket fd keeps accepting new connections,
+        // each connection gets its own connfd
+        // accept returns the clients's address
         if(connfd<0){ continue;}      // error
 
         do_something(connfd);
