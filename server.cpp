@@ -29,13 +29,13 @@ static void do_something(int connfd){
     // read data from connfd and put it in rbuf, read atmost 63 bytes
     // 63 because leave 1 byte for \0
     // n -> number of bytes acutally read
-    // if clinet sends hello -> n=5
+    // if clinet sends "hello" -> n=5
     // ssize_t -> signed size, if n<0 -> error
     if(n<0){
         msg("read() error");
         return;
     }
-    fprintf(stderr, "client says: %s\n", rbuf);
+    fprintf(stderr, "Client says: %s\n", rbuf);
 
     char wbuf[] = "world";
     // it is world+\0, \0 gets appended automatically in strings in c
@@ -94,6 +94,11 @@ int main(){
     rv = listen(fd, SOMAXCONN);
     if(rv){ die("listen()"); }
     // SOMAXCONN, size of queue(4096 on linux)
+
+
+    // server has 2 sockets
+    // fd -> istening socket
+    // connfd -> connection to a particular client
 
 
 
